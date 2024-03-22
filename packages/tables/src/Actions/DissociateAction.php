@@ -7,6 +7,7 @@ use Filament\Support\Facades\FilamentIcon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class DissociateAction extends Action
 {
@@ -39,10 +40,15 @@ class DissociateAction extends Action
 
         $this->action(function (): void {
             $this->process(function (Model $record, Table $table): void {
-                /** @var BelongsTo $inverseRelationship */
+                /** @var BelongsTo|BelongsToMany $inverseRelationship */
                 $inverseRelationship = $table->getInverseRelationshipFor($record);
 
-                $inverseRelationship->dissociate();
+                if ($inverseRelationship instanceof BelongsToMany) {
+                    $inverseRelationship->detach();
+                } else {
+                    $inverseRelationship->dissociate();
+                }
+
                 $record->save();
             });
 
